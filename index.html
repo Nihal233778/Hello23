@@ -68,7 +68,7 @@
             margin-top: 16px;
             white-space: pre-wrap;
             text-align: left;
-            min-height: 100px;
+            min-height: 150px;
             max-height: 300px;
             overflow-y: auto;
         }
@@ -96,65 +96,91 @@
 
         function log(message, isError = false) {
             const timestamp = new Date().toLocaleTimeString();
-            logEl.innerHTML = `[${timestamp}] ${message}\n` + logEl.innerHTML;
-            logEl.style.color = 'inherit';
+            const prefix = isError ? '❌' : '✅';
+            logEl.innerHTML = `[${timestamp}] ${prefix} ${message}\n` + logEl.innerHTML;
             console.log(message);
+        }
+
+        // Helper to inspect controller for ads data
+        function inspectController(controller) {
+            let adsData = null;
+            // Look for common property names that might hold ads
+            const possibleProps = ['ads', 'adList', 'adData', 'activeAds', 'cachedAds'];
+            for (const prop of possibleProps) {
+                if (controller[prop] !== undefined) {
+                    adsData = controller[prop];
+                    log(`Found property '${prop}': ${JSON.stringify(adsData).substring(0, 100)}...`);
+                }
+            }
+            return adsData;
         }
 
         async function playAd() {
             const controller = window.TelegramAdsController;
             if (!controller) {
-                log('❌ Ad controller not available', true);
+                log('Ad controller not available', true);
                 return;
             }
 
             playBtn.disabled = true;
-            log('⏳ Starting ad sequence...');
+            log('Starting ad sequence...');
 
             try {
-                // Step 1: Try to fetch ads first (if available)
+                // Step 1: Fetch real ads
                 if (typeof controller.fetchAds === 'function') {
-                    log('📡 Fetching ads...');
+                    log('Fetching ads...');
                     const fetchResult = await controller.fetchAds();
-                    log('✅ fetchAds completed: ' + JSON.stringify(fetchResult));
+                    log(`fetchAds result: ${JSON.stringify(fetchResult)}`);
                 } else {
-                    log('⚠️ fetchAds method not found, proceeding without it.');
+                    log('fetchAds method not found', true);
                 }
 
-                // Step 2: Try to load configuration (if available)
+                // Step 2: If ads are null or empty, generate debug ads
+                const ads = inspectController(controller);
+                if (!ads || (Array.isArray(ads) && ads.length === 0)) {
+                    log('No ads available, generating debug ads...');
+                    if (typeof controller.generateDebugAdData === 'function') {
+                        const debugResult = await controller.generateDebugAdData();
+                        log(`generateDebugAdData result: ${JSON.stringify(debugResult)}`);
+                    } else {
+                        log('generateDebugAdData method not found', true);
+                    }
+                }
+
+                // Step 3: Load configuration (if available)
                 if (typeof controller.loadConfiguration === 'function') {
-                    log('⚙️ Loading configuration...');
+                    log('Loading configuration...');
                     await controller.loadConfiguration();
-                    log('✅ loadConfiguration completed');
+                    log('loadConfiguration completed');
                 }
 
-                // Step 3: Trigger interstitial video
+                // Step 4: Trigger interstitial video
                 if (typeof controller.triggerInterstitialVideo === 'function') {
-                    log('🎬 Triggering interstitial video...');
+                    log('Triggering interstitial video...');
                     const result = await controller.triggerInterstitialVideo();
-                    log('✅ Ad completed! Result: ' + JSON.stringify(result));
-                    // Here you can give the reward
+                    log(`Ad completed! Result: ${JSON.stringify(result)}`);
+                    // Reward the user here
                 }
                 else if (typeof controller.triggerInterstitialMixed === 'function') {
-                    log('🎬 Triggering interstitial mixed...');
+                    log('Triggering interstitial mixed...');
                     const result = await controller.triggerInterstitialMixed();
-                    log('✅ Ad completed! Result: ' + JSON.stringify(result));
+                    log(`Ad completed! Result: ${JSON.stringify(result)}`);
                 }
                 else if (typeof controller.triggerInterstitialBanner === 'function') {
-                    log('🎬 Triggering interstitial banner...');
+                    log('Triggering interstitial banner...');
                     const result = await controller.triggerInterstitialBanner();
-                    log('✅ Ad completed! Result: ' + JSON.stringify(result));
+                    log(`Ad completed! Result: ${JSON.stringify(result)}`);
                 }
                 else {
                     // No method found – list all methods
                     const proto = Object.getPrototypeOf(controller);
                     const methods = Object.getOwnPropertyNames(proto)
                         .filter(name => typeof controller[name] === 'function' && name !== 'constructor');
-                    log('❌ No suitable ad method. Available: ' + methods.join(', '), true);
+                    log('No suitable ad method. Available: ' + methods.join(', '), true);
                 }
             } catch (error) {
-                log('❌ Ad error: ' + (error.message || 'Unknown error'), true);
-                if (error.stack) log('Stack: ' + error.stack);
+                log(`Ad error: ${error.message}`, true);
+                if (error.stack) log(`Stack: ${error.stack}`);
             } finally {
                 playBtn.disabled = false;
             }
