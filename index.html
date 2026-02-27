@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Ad TMA</title>
-    <!-- Telegram WebApp script (required for TMA) -->
+    <!-- Telegram WebApp script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- RichInfo ad script (placed in head as requested) -->
+    <!-- RichInfo ad script -->
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
     <script>
-        // Initialize the ad controller immediately
+        // Initialize ad controller
         window.TelegramAdsController = new TelegramAdsController();
         window.TelegramAdsController.initialize({
             pubId: "991787",
             appId: "6347",
         });
-        console.log('TelegramAdsController initialized with pubId 991787, appId 6347');
+        console.log('TelegramAdsController initialized');
     </script>
     <style>
         body {
@@ -41,7 +41,6 @@
         .info {
             color: var(--tg-theme-hint-color, #666);
             margin-bottom: 24px;
-            font-size: 14px;
         }
         button {
             background: var(--tg-theme-button-color, #2481cc);
@@ -54,7 +53,6 @@
             width: 100%;
             cursor: pointer;
             margin: 16px 0;
-            transition: opacity 0.2s;
         }
         button:disabled {
             opacity: 0.5;
@@ -69,15 +67,8 @@
             border: 1px solid var(--tg-theme-hint-color, #ccc);
             margin-top: 16px;
             white-space: pre-wrap;
-            word-break: break-word;
             text-align: left;
             min-height: 80px;
-        }
-        .success {
-            color: #4caf50;
-        }
-        .error {
-            color: #f44336;
         }
     </style>
 </head>
@@ -92,7 +83,6 @@
     </div>
 
     <script>
-        // Telegram WebApp expansion
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.ready();
@@ -104,13 +94,7 @@
 
         function log(message, isError = false) {
             logEl.innerHTML = message;
-            if (isError) {
-                logEl.classList.add('error');
-                logEl.classList.remove('success');
-            } else {
-                logEl.classList.add('success');
-                logEl.classList.remove('error');
-            }
+            logEl.style.color = isError ? '#f44336' : '#4caf50';
             console.log(message);
         }
 
@@ -125,27 +109,28 @@
             log('⏳ Loading ad...');
 
             try {
-                // Try common rewarded ad method names
-                let result;
-                if (typeof controller.showRewardedVideo === 'function') {
-                    result = await controller.showRewardedVideo();
-                } else if (typeof controller.showRewarded === 'function') {
-                    result = await controller.showRewarded();
-                } else if (typeof controller.showAd === 'function') {
-                    result = await controller.showAd();
-                } else {
-                    // No suitable method – list available ones for debugging
+                // Try the most likely method: triggerInterstitialVideo
+                if (typeof controller.triggerInterstitialVideo === 'function') {
+                    await controller.triggerInterstitialVideo();
+                    log('✅ Ad completed! Reward granted.');
+                }
+                // Fallback to triggerInterstitialMixed
+                else if (typeof controller.triggerInterstitialMixed === 'function') {
+                    await controller.triggerInterstitialMixed();
+                    log('✅ Ad completed! Reward granted.');
+                }
+                // Fallback to triggerInterstitialBanner
+                else if (typeof controller.triggerInterstitialBanner === 'function') {
+                    await controller.triggerInterstitialBanner();
+                    log('✅ Ad completed! Reward granted.');
+                }
+                else {
+                    // No method found – list all methods again
                     const proto = Object.getPrototypeOf(controller);
                     const methods = Object.getOwnPropertyNames(proto)
                         .filter(name => typeof controller[name] === 'function' && name !== 'constructor');
-                    log('❌ No rewarded ad method found. Available: ' + methods.join(', '), true);
-                    playBtn.disabled = false;
-                    return;
+                    log('❌ No suitable ad method. Available: ' + methods.join(', '), true);
                 }
-
-                // If we get here, assume success
-                log('✅ Ad completed! Reward granted.');
-                // You can add your reward logic here (e.g., give coins, boosters)
             } catch (error) {
                 log('❌ Ad error: ' + (error.message || 'Unknown error'), true);
             } finally {
@@ -157,4 +142,3 @@
     </script>
 </body>
 </html>
-    
