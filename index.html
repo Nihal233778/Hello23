@@ -68,7 +68,9 @@
             margin-top: 16px;
             white-space: pre-wrap;
             text-align: left;
-            min-height: 80px;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
         }
     </style>
 </head>
@@ -93,8 +95,9 @@
         const playBtn = document.getElementById('playBtn');
 
         function log(message, isError = false) {
-            logEl.innerHTML = message;
-            logEl.style.color = isError ? '#f44336' : '#4caf50';
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.innerHTML = `[${timestamp}] ${message}\n` + logEl.innerHTML;
+            logEl.style.color = 'inherit';
             console.log(message);
         }
 
@@ -106,26 +109,44 @@
             }
 
             playBtn.disabled = true;
-            log('⏳ Loading ad...');
+            log('⏳ Starting ad sequence...');
 
             try {
-                // Try the most likely method: triggerInterstitialVideo
+                // Step 1: Try to fetch ads first (if available)
+                if (typeof controller.fetchAds === 'function') {
+                    log('📡 Fetching ads...');
+                    const fetchResult = await controller.fetchAds();
+                    log('✅ fetchAds completed: ' + JSON.stringify(fetchResult));
+                } else {
+                    log('⚠️ fetchAds method not found, proceeding without it.');
+                }
+
+                // Step 2: Try to load configuration (if available)
+                if (typeof controller.loadConfiguration === 'function') {
+                    log('⚙️ Loading configuration...');
+                    await controller.loadConfiguration();
+                    log('✅ loadConfiguration completed');
+                }
+
+                // Step 3: Trigger interstitial video
                 if (typeof controller.triggerInterstitialVideo === 'function') {
-                    await controller.triggerInterstitialVideo();
-                    log('✅ Ad completed! Reward granted.');
+                    log('🎬 Triggering interstitial video...');
+                    const result = await controller.triggerInterstitialVideo();
+                    log('✅ Ad completed! Result: ' + JSON.stringify(result));
+                    // Here you can give the reward
                 }
-                // Fallback to triggerInterstitialMixed
                 else if (typeof controller.triggerInterstitialMixed === 'function') {
-                    await controller.triggerInterstitialMixed();
-                    log('✅ Ad completed! Reward granted.');
+                    log('🎬 Triggering interstitial mixed...');
+                    const result = await controller.triggerInterstitialMixed();
+                    log('✅ Ad completed! Result: ' + JSON.stringify(result));
                 }
-                // Fallback to triggerInterstitialBanner
                 else if (typeof controller.triggerInterstitialBanner === 'function') {
-                    await controller.triggerInterstitialBanner();
-                    log('✅ Ad completed! Reward granted.');
+                    log('🎬 Triggering interstitial banner...');
+                    const result = await controller.triggerInterstitialBanner();
+                    log('✅ Ad completed! Result: ' + JSON.stringify(result));
                 }
                 else {
-                    // No method found – list all methods again
+                    // No method found – list all methods
                     const proto = Object.getPrototypeOf(controller);
                     const methods = Object.getOwnPropertyNames(proto)
                         .filter(name => typeof controller[name] === 'function' && name !== 'constructor');
@@ -133,6 +154,7 @@
                 }
             } catch (error) {
                 log('❌ Ad error: ' + (error.message || 'Unknown error'), true);
+                if (error.stack) log('Stack: ' + error.stack);
             } finally {
                 playBtn.disabled = false;
             }
