@@ -4,10 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Ad TMA</title>
-    <!-- Telegram WebApp script (required for TMA) -->
+    <!-- Telegram WebApp script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- RichInfo ad script (must be in head as requested) -->
+    <!-- RichInfo ad script (in head) -->
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
+    <script>
+        // Initialize ad controller as early as possible
+        window.TelegramAdsController = new TelegramAdsController();
+        window.TelegramAdsController.initialize({
+            pubId: "991787",
+            appId: "6347",
+        });
+        console.log('AdController initialized with pubId 991787, appId 6347');
+    </script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -59,8 +68,8 @@
             margin-top: 16px;
             white-space: pre-wrap;
             text-align: left;
-            min-height: 100px;
-            max-height: 300px;
+            min-height: 150px;
+            max-height: 400px;
             overflow-y: auto;
         }
     </style>
@@ -71,96 +80,105 @@
         <div class="info">pubId: 991787 | appId: 6347</div>
 
         <button id="playBtn">▶️ Play Rewarded Ad</button>
+        <button id="listBtn" style="background: var(--tg-theme-hint-color, #666);">🔍 List Methods</button>
 
-        <div class="log-box" id="log">Ready. Click the button to test the ad.</div>
+        <div class="log-box" id="log">Ready. Click a button.</div>
     </div>
 
     <script>
-        // Wait for everything to load
-        (function() {
-            const logEl = document.getElementById('log');
-            const playBtn = document.getElementById('playBtn');
-            let adController = null;
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
 
-            function log(message, isError = false) {
-                const timestamp = new Date().toLocaleTimeString();
-                const prefix = isError ? '❌' : '✅';
-                logEl.innerHTML = `[${timestamp}] ${prefix} ${message}\n` + logEl.innerHTML;
-                console.log(message);
+        const logEl = document.getElementById('log');
+        const playBtn = document.getElementById('playBtn');
+        const listBtn = document.getElementById('listBtn');
+        let adController = window.TelegramAdsController;
+
+        function log(message, isError = false) {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = isError ? '❌' : '✅';
+            logEl.innerHTML = `[${timestamp}] ${prefix} ${message}\n` + logEl.innerHTML;
+            console.log(message);
+        }
+
+        // Function to list all available methods on the controller
+        function listMethods() {
+            if (!adController) {
+                log('AdController not available', true);
+                return;
             }
 
-            // Initialize Telegram and then ad controller
-            function init() {
-                const tg = window.Telegram?.WebApp;
-                if (tg) {
-                    tg.ready();
-                    tg.expand();
-                    log('Telegram WebApp ready');
-                } else {
-                    log('Telegram WebApp not found', true);
+            let methods = [];
+            // Get methods from the object itself
+            const ownProps = Object.getOwnPropertyNames(adController);
+            ownProps.forEach(prop => {
+                if (typeof adController[prop] === 'function') {
+                    methods.push(prop);
                 }
+            });
 
-                // Initialize ad controller after Telegram is ready
-                if (window.TelegramAdsController) {
-                    adController = window.TelegramAdsController;
-                    log('Ad controller already exists');
-                } else {
-                    try {
-                        // If not already initialized, create and initialize
-                        window.TelegramAdsController = new TelegramAdsController();
-                        window.TelegramAdsController.initialize({
-                            pubId: "991787",
-                            appId: "6347",
-                        });
-                        adController = window.TelegramAdsController;
-                        log('Ad controller initialized');
-                    } catch (e) {
-                        log('Ad controller init error: ' + e.message, true);
+            // Get methods from prototype
+            const proto = Object.getPrototypeOf(adController);
+            if (proto) {
+                const protoProps = Object.getOwnPropertyNames(proto);
+                protoProps.forEach(prop => {
+                    if (prop !== 'constructor' && typeof adController[prop] === 'function' && !methods.includes(prop)) {
+                        methods.push(prop);
                     }
-                }
+                });
             }
 
-            // Call init after a short delay to ensure scripts are loaded
-            window.addEventListener('load', () => {
-                setTimeout(init, 500); // small delay to let everything settle
-            });
+            log('Available methods: ' + methods.sort().join(', '));
+            return methods;
+        }
 
-            // Play ad button handler – simplified, no manual fetch
-            playBtn.addEventListener('click', async () => {
-                if (!adController) {
-                    log('Ad controller not ready', true);
-                    return;
+        listBtn.addEventListener('click', () => {
+            listMethods();
+        });
+
+        playBtn.addEventListener('click', async () => {
+            if (!adController) {
+                log('AdController not available', true);
+                return;
+            }
+
+            playBtn.disabled = true;
+            log('Attempting to trigger ad...');
+
+            try {
+                // First, list methods for debugging
+                const methods = listMethods();
+
+                // Try to call triggerInterstitialVideo if it exists
+                if (typeof adController.triggerInterstitialVideo === 'function') {
+                    log('Calling triggerInterstitialVideo...');
+                    // It might expect arguments; try with empty object or none
+                    const result = await adController.triggerInterstitialVideo();
+                    log('Ad completed! Result: ' + JSON.stringify(result));
                 }
-
-                playBtn.disabled = true;
-                log('Attempting to trigger ad...');
-
-                try {
-                    // Directly try the most promising method
-                    if (typeof adController.triggerInterstitialVideo === 'function') {
-                        const result = await adController.triggerInterstitialVideo();
-                        log('Ad completed! Result: ' + JSON.stringify(result));
-                        // Reward user here
-                    } 
-                    else if (typeof adController.triggerInterstitialMixed === 'function') {
-                        const result = await adController.triggerInterstitialMixed();
-                        log('Ad completed! Result: ' + JSON.stringify(result));
-                    }
-                    else if (typeof adController.triggerInterstitialBanner === 'function') {
-                        const result = await adController.triggerInterstitialBanner();
-                        log('Ad completed! Result: ' + JSON.stringify(result));
-                    }
-                    else {
-                        log('No trigger method found', true);
-                    }
-                } catch (error) {
-                    log('Ad error: ' + error.message, true);
-                    if (error.stack) log('Stack: ' + error.stack);
-                } finally {
-                    playBtn.disabled = false;
+                else if (typeof adController.triggerInterstitialMixed === 'function') {
+                    log('Calling triggerInterstitialMixed...');
+                    const result = await adController.triggerInterstitialMixed();
+                    log('Ad completed! Result: ' + JSON.stringify(result));
                 }
-            });
-        })();
+                else if (typeof adController.triggerInterstitialBanner === 'function') {
+                    log('Calling triggerInterstitialBanner...');
+                    const result = await adController.triggerInterstitialBanner();
+                    log('Ad completed! Result: ' + JSON.stringify(result));
+                }
+                else {
+                    log('No trigger method found in the list above', true);
+                }
+            } catch (error) {
+                log('Ad error: ' + error.message, true);
+                if (error.stack) log('Stack: ' + error.stack);
+            } finally {
+                playBtn.disabled = false;
+            }
+        });
     </script>
 </body>
-</html>              
+</html>
