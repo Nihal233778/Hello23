@@ -3,319 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booster Box – Rewarded Ads</title>
-    <!-- Telegram WebApp script -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- RichInfo ad script (REAL) -->
+    <title>Telegram Mini App</title>
+
+    <!-- External ad script -->
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
+
+    <!-- Initialization script -->
     <script>
-        // Initialize the ad controller as early as possible
         window.TelegramAdsController = new TelegramAdsController();
         window.TelegramAdsController.initialize({
-            pubId: "991787",
+            pubId: "null",
             appId: "6347",
         });
-        console.log('AdController initialized with pubId 991787, appId 6347');
     </script>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 16px;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 400px;
-            width: 100%;
-        }
-        h1 {
-            font-size: 28px;
-            margin-bottom: 4px;
-            text-align: center;
-        }
-        .subtitle {
-            color: var(--tg-theme-hint-color, #666);
-            text-align: center;
-            margin-bottom: 24px;
-        }
-        .booster-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 20px 0;
-        }
-        .booster-card {
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            border: 1px solid var(--tg-theme-hint-color, #ccc);
-        }
-        .booster-emoji {
-            font-size: 40px;
-            margin-bottom: 8px;
-        }
-        .booster-name {
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        .booster-count {
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--tg-theme-button-color, #2481cc);
-        }
-        .ad-button {
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            border-radius: 12px;
-            padding: 16px;
-            font-size: 18px;
-            font-weight: 600;
-            width: 100%;
-            cursor: pointer;
-            margin: 16px 0;
-            transition: opacity 0.2s;
-        }
-        .ad-button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .ad-button.secondary {
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            color: var(--tg-theme-text-color, #000000);
-            border: 2px solid var(--tg-theme-button-color, #2481cc);
-        }
-        .log-box {
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            border-radius: 8px;
-            padding: 12px;
-            font-family: monospace;
-            font-size: 11px;
-            border: 1px solid var(--tg-theme-hint-color, #ccc);
-            margin-top: 16px;
-            white-space: pre-wrap;
-            text-align: left;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .status {
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎁 Booster Box</h1>
-        <div class="subtitle">Earn boosters by watching ads</div>
-
-        <!-- Boosters inventory -->
-        <div class="booster-grid">
-            <div class="booster-card">
-                <div class="booster-emoji">⬅️</div>
-                <div class="booster-name">Move Back</div>
-                <div class="booster-count" id="booster1">0</div>
-            </div>
-            <div class="booster-card">
-                <div class="booster-emoji">❌</div>
-                <div class="booster-name">Delete Tile</div>
-                <div class="booster-count" id="booster2">0</div>
-            </div>
-            <div class="booster-card">
-                <div class="booster-emoji">➡️</div>
-                <div class="booster-name">Move Without Tile</div>
-                <div class="booster-count" id="booster3">0</div>
-            </div>
-            <div class="booster-card">
-                <div class="booster-emoji">🔄</div>
-                <div class="booster-name">Shuffle</div>
-                <div class="booster-count" id="booster4">0</div>
-            </div>
-        </div>
-
-        <!-- Ad buttons -->
-        <button class="ad-button" id="watchAdBtn">🎬 Watch Real Ad</button>
-        <button class="ad-button secondary" id="simulateBtn">🔄 Simulate Ad (Fallback)</button>
-        <button class="ad-button secondary" id="debugBtn">🔍 Debug Controller</button>
-
-        <!-- Log area -->
-        <div class="log-box" id="log">Ready. Click a button.</div>
+    <div style="text-align: center; margin-top: 50px;">
+        <h1>Telegram Mini App Loaded</h1>
+        <p>Ads controller initialized with appId 6347.</p>
+        <button id="adButton" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Show Ad</button>
+        <p id="status" style="margin-top: 20px; color: #555;"></p>
     </div>
 
     <script>
-        (function() {
-            // Telegram WebApp
-            const tg = window.Telegram?.WebApp;
-            if (tg) {
-                tg.ready();
-                tg.expand();
+        // Button click handler
+        document.getElementById('adButton').addEventListener('click', function() {
+            const statusEl = document.getElementById('status');
+            const controller = window.TelegramAdsController;
+
+            if (!controller) {
+                statusEl.innerText = 'Error: TelegramAdsController not found.';
+                return;
             }
 
-            // Booster state
-            let boosters = [0, 0, 0, 0]; // Move Back, Delete Tile, Move Without Tile, Shuffle
-            const boosterNames = ['Move Back', 'Delete Tile', 'Move Without Tile', 'Shuffle'];
-            
-            // DOM elements
-            const boosterEls = [
-                document.getElementById('booster1'),
-                document.getElementById('booster2'),
-                document.getElementById('booster3'),
-                document.getElementById('booster4')
-            ];
-            const watchBtn = document.getElementById('watchAdBtn');
-            const simulateBtn = document.getElementById('simulateBtn');
-            const debugBtn = document.getElementById('debugBtn');
-            const logEl = document.getElementById('log');
-
-            // Ad controller reference
-            let adController = window.TelegramAdsController;
-
-            // Helper: log message
-            function log(message, isError = false) {
-                const timestamp = new Date().toLocaleTimeString();
-                const prefix = isError ? '❌' : '✅';
-                logEl.innerHTML = `[${timestamp}] ${prefix} ${message}\n` + logEl.innerHTML;
-                console.log(message);
-            }
-
-            // Update UI
-            function updateBoosters() {
-                boosterEls.forEach((el, i) => {
-                    el.textContent = boosters[i];
-                });
-            }
-
-            // Give random booster
-            function giveRandomBooster() {
-                const randomIndex = Math.floor(Math.random() * boosters.length);
-                boosters[randomIndex]++;
-                updateBoosters();
-                log(`🎉 You got: ${boosterNames[randomIndex]}!`);
-            }
-
-            // Simulate ad (fallback)
-            function simulateAd() {
-                log('🎬 Simulating ad...');
-                setTimeout(() => {
-                    if (Math.random() < 0.9) {
-                        log('✅ Simulated ad completed!');
-                        giveRandomBooster();
-                    } else {
-                        log('❌ Simulated ad failed.', true);
-                    }
-                }, 2000);
-            }
-
-            // Debug: list all methods and properties
-            function debugController() {
-                if (!adController) {
-                    log('AdController not available!', true);
-                    return;
-                }
-
-                log('=== Controller Debug ===');
-                
-                // List all own properties
-                const ownProps = Object.getOwnPropertyNames(adController);
-                log('Own properties: ' + ownProps.join(', '));
-
-                // List prototype methods
-                const proto = Object.getPrototypeOf(adController);
-                if (proto) {
-                    const protoMethods = Object.getOwnPropertyNames(proto).filter(p => p !== 'constructor' && typeof adController[p] === 'function');
-                    log('Prototype methods: ' + protoMethods.join(', '));
-                }
-
-                // Check for common ad-related properties
-                const possibleProps = ['ads', 'adList', 'adData', 'cachedAds', 'activeAds'];
-                possibleProps.forEach(prop => {
-                    if (adController[prop] !== undefined) {
-                        log(`Property ${prop}: ${JSON.stringify(adController[prop])}`);
-                    }
-                });
-            }
-
-            // Attempt to show real ad with proper sequence
-            async function showRealAd() {
-                if (!adController) {
-                    log('AdController not available!', true);
-                    return;
-                }
-
-                watchBtn.disabled = true;
-                log('Starting real ad sequence...');
-
+            // Try to call a common ad method - replace 'showAd' with the actual method name if different
+            if (typeof controller.showAd === 'function') {
                 try {
-                    // Step 1: Load configuration (if available)
-                    if (typeof adController.loadConfiguration === 'function') {
-                        log('Loading configuration...');
-                        await adController.loadConfiguration();
-                        log('Configuration loaded.');
-                    }
-
-                    // Step 2: Fetch ads (if available)
-                    if (typeof adController.fetchAds === 'function') {
-                        log('Fetching ads...');
-                        const fetchResult = await adController.fetchAds();
-                        log('Fetch result: ' + JSON.stringify(fetchResult));
-                    }
-
-                    // Step 3: Try different trigger methods
-                    const triggerMethods = [
-                        'triggerInterstitialVideo',
-                        'triggerInterstitialMixed',
-                        'triggerInterstitialBanner',
-                        'triggerRewardedVideo',   // common alternative
-                        'showRewardedAd'           // another common
-                    ];
-
-                    let triggered = false;
-                    for (const method of triggerMethods) {
-                        if (typeof adController[method] === 'function') {
-                            log(`Calling ${method}...`);
-                            try {
-                                const result = await adController[method]();
-                                log(`✅ ${method} succeeded! Result: ${JSON.stringify(result)}`);
-                                giveRandomBooster();
-                                triggered = true;
-                                break;
-                            } catch (e) {
-                                log(`⚠️ ${method} failed: ${e.message}`, true);
-                            }
-                        }
-                    }
-
-                    if (!triggered) {
-                        log('❌ No trigger method succeeded. Use debug button to see available methods.', true);
-                        // Fallback to simulation? We'll let user decide.
-                    }
-                } catch (error) {
-                    log('❌ Real ad error: ' + error.message, true);
-                    if (error.stack) log('Stack: ' + error.stack);
-                } finally {
-                    watchBtn.disabled = false;
+                    controller.showAd();
+                    statusEl.innerText = 'Ad requested via showAd()';
+                } catch (e) {
+                    statusEl.innerText = 'Error calling showAd(): ' + e.message;
+                }
+            } 
+            // Fallback: try other common method names
+            else if (typeof controller.displayAd === 'function') {
+                try {
+                    controller.displayAd();
+                    statusEl.innerText = 'Ad requested via displayAd()';
+                } catch (e) {
+                    statusEl.innerText = 'Error calling displayAd(): ' + e.message;
                 }
             }
-
-            // Event listeners
-            watchBtn.addEventListener('click', showRealAd);
-            simulateBtn.addEventListener('click', () => {
-                simulateAd();
-            });
-            debugBtn.addEventListener('click', debugController);
-
-            // Initial UI
-            updateBoosters();
-            log('App ready. Try "Watch Real Ad" or use "Simulate Ad" as fallback.');
-        })();
+            else {
+                statusEl.innerText = 'No known ad method found on controller. Please check the script API.';
+                console.log('Available methods on TelegramAdsController:', Object.getOwnPropertyNames(Object.getPrototypeOf(controller)));
+            }
+        });
     </script>
 </body>
-</html>
-    
-            
+</html>                                        
