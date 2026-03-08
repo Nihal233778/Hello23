@@ -22,43 +22,73 @@
         <h1>Telegram Mini App Loaded</h1>
         <p>Ads controller initialized with appId 6347.</p>
         <button id="adButton" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Show Ad</button>
+        <button id="listMethodsBtn" style="padding: 10px 20px; font-size: 16px; cursor: pointer; margin-left: 10px;">List Methods</button>
         <p id="status" style="margin-top: 20px; color: #555;"></p>
     </div>
 
     <script>
-        // Button click handler
-        document.getElementById('adButton').addEventListener('click', function() {
-            const statusEl = document.getElementById('status');
-            const controller = window.TelegramAdsController;
+        const controller = window.TelegramAdsController;
+        const statusEl = document.getElementById('status');
 
+        // Helper to get all method names from an object and its prototype chain
+        function getAllMethods(obj) {
+            let methods = new Set();
+            let current = obj;
+            while (current && current !== Object.prototype) {
+                Object.getOwnPropertyNames(current).forEach(prop => {
+                    if (typeof current[prop] === 'function') {
+                        methods.add(prop);
+                    }
+                });
+                current = Object.getPrototypeOf(current);
+            }
+            return Array.from(methods);
+        }
+
+        // Show Ad button – tries a few common method names
+        document.getElementById('adButton').addEventListener('click', function() {
             if (!controller) {
                 statusEl.innerText = 'Error: TelegramAdsController not found.';
                 return;
             }
 
-            // Try to call a common ad method - replace 'showAd' with the actual method name if different
-            if (typeof controller.showAd === 'function') {
-                try {
-                    controller.showAd();
-                    statusEl.innerText = 'Ad requested via showAd()';
-                } catch (e) {
-                    statusEl.innerText = 'Error calling showAd(): ' + e.message;
-                }
-            } 
-            // Fallback: try other common method names
-            else if (typeof controller.displayAd === 'function') {
-                try {
-                    controller.displayAd();
-                    statusEl.innerText = 'Ad requested via displayAd()';
-                } catch (e) {
-                    statusEl.innerText = 'Error calling displayAd(): ' + e.message;
+            // List of possible method names to try (you can add more after listing)
+            const possibleMethods = ['showAd', 'displayAd', 'show', 'loadAd', 'showInterstitial', 'requestAd', 'showBanner'];
+
+            let called = false;
+            for (let method of possibleMethods) {
+                if (typeof controller[method] === 'function') {
+                    try {
+                        controller[method]();
+                        statusEl.innerText = `Called ${method}() successfully.`;
+                        called = true;
+                        break;
+                    } catch (e) {
+                        statusEl.innerText = `Error calling ${method}(): ` + e.message;
+                        called = true;
+                        break;
+                    }
                 }
             }
-            else {
-                statusEl.innerText = 'No known ad method found on controller. Please check the script API.';
-                console.log('Available methods on TelegramAdsController:', Object.getOwnPropertyNames(Object.getPrototypeOf(controller)));
+
+            if (!called) {
+                statusEl.innerText = 'No known ad method found. Click "List Methods" to see available functions.';
+                console.warn('Available methods on controller:', getAllMethods(controller));
             }
+        });
+
+        // List Methods button – shows all methods in console and alert
+        document.getElementById('listMethodsBtn').addEventListener('click', function() {
+            if (!controller) {
+                statusEl.innerText = 'Controller not found.';
+                return;
+            }
+
+            const methods = getAllMethods(controller);
+            console.log('All methods on TelegramAdsController:', methods);
+            alert('Check the console (F12) for the list of methods.\n\nMethods found: ' + methods.join(', '));
+            statusEl.innerText = 'Methods listed in console.';
         });
     </script>
 </body>
-</html>                                        
+</html>
