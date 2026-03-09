@@ -2,93 +2,97 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Mini App</title>
-
-    <!-- External ad script -->
-    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
-
-    <!-- Initialization script -->
-    <script>
-        window.TelegramAdsController = new TelegramAdsController();
-        window.TelegramAdsController.initialize({
-            pubId: "null",
-            appId: "6347",
-        });
-    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TMA with Ads and Button</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 16px;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        button {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:active {
+            opacity: 0.8;
+        }
+        .ad-container {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px dashed var(--tg-theme-hint-color, #ccc);
+            border-radius: 8px;
+            color: var(--tg-theme-hint-color, #999);
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
-    <div style="text-align: center; margin-top: 50px;">
-        <h1>Telegram Mini App Loaded</h1>
-        <p>Ads controller initialized with appId 6347.</p>
-        <button id="adButton" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Show Ad</button>
-        <button id="listMethodsBtn" style="padding: 10px 20px; font-size: 16px; cursor: pointer; margin-left: 10px;">List Methods</button>
-        <p id="status" style="margin-top: 20px; color: #555;"></p>
+    <div class="container">
+        <h1>My TMA</h1>
+        <p>Click the button below:</p>
+
+        <!-- Simple interactive button -->
+        <button id="actionButton">Click Me</button>
+
+        <!-- Ads will be placed here by the script -->
+        <div class="ad-container" id="adsContainer">
+            Loading ads...
+        </div>
     </div>
 
+    <!-- Telegram Ads script -->
+    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
     <script>
-        const controller = window.TelegramAdsController;
-        const statusEl = document.getElementById('status');
+        // Initialize Telegram Ads
+        window.TelegramAdsController = new TelegramAdsController();
+        window.TelegramAdsController.initialize({
+            pubId: "null",   // Replace with your actual publisher ID
+            appId: "6347",
+        });
 
-        // Helper to get all method names from an object and its prototype chain
-        function getAllMethods(obj) {
-            let methods = new Set();
-            let current = obj;
-            while (current && current !== Object.prototype) {
-                Object.getOwnPropertyNames(current).forEach(prop => {
-                    if (typeof current[prop] === 'function') {
-                        methods.add(prop);
-                    }
-                });
-                current = Object.getPrototypeOf(current);
+        // Button click handler
+        document.getElementById('actionButton').addEventListener('click', function() {
+            // Show a simple alert (works in Telegram WebApp)
+            if (window.Telegram && Telegram.WebApp) {
+                Telegram.WebApp.showAlert('Button was clicked!');
+            } else {
+                alert('Button was clicked!');
             }
-            return Array.from(methods);
+        });
+
+        // Telegram WebApp ready
+        if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
         }
-
-        // Show Ad button – tries a few common method names
-        document.getElementById('adButton').addEventListener('click', function() {
-            if (!controller) {
-                statusEl.innerText = 'Error: TelegramAdsController not found.';
-                return;
-            }
-
-            // List of possible method names to try (you can add more after listing)
-            const possibleMethods = ['showAd', 'displayAd', 'show', 'loadAd', 'showInterstitial', 'requestAd', 'showBanner'];
-
-            let called = false;
-            for (let method of possibleMethods) {
-                if (typeof controller[method] === 'function') {
-                    try {
-                        controller[method]();
-                        statusEl.innerText = `Called ${method}() successfully.`;
-                        called = true;
-                        break;
-                    } catch (e) {
-                        statusEl.innerText = `Error calling ${method}(): ` + e.message;
-                        called = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!called) {
-                statusEl.innerText = 'No known ad method found. Click "List Methods" to see available functions.';
-                console.warn('Available methods on controller:', getAllMethods(controller));
-            }
-        });
-
-        // List Methods button – shows all methods in console and alert
-        document.getElementById('listMethodsBtn').addEventListener('click', function() {
-            if (!controller) {
-                statusEl.innerText = 'Controller not found.';
-                return;
-            }
-
-            const methods = getAllMethods(controller);
-            console.log('All methods on TelegramAdsController:', methods);
-            alert('Check the console (F12) for the list of methods.\n\nMethods found: ' + methods.join(', '));
-            statusEl.innerText = 'Methods listed in console.';
-        });
     </script>
 </body>
 </html>
