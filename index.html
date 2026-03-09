@@ -4,6 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Telegram Ads script now in head -->
+    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
+
     <style>
         body { background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-family: sans-serif; padding: 16px; }
         button { background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; padding: 12px; border-radius: 8px; }
@@ -18,13 +22,13 @@
         Loading ad...
     </div>
 
-    <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
     <script>
+        // Wait for DOM to be ready before initializing the ad controller
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof TelegramAdsController !== 'undefined') {
                 window.TelegramAdsController = new TelegramAdsController();
                 window.TelegramAdsController.initialize({
-                    pubId: "389237",  // <-- replace with actual publisher ID if different
+                    pubId: "389237",  // Replace with your actual publisher ID
                     appId: "6347",
                 });
                 console.log('Ad controller initialized');
