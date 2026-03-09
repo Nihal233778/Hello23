@@ -1,98 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TMA with Ads and Button</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 16px;
-            background: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 400px;
-            width: 100%;
-            text-align: center;
-        }
-        h1 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        button {
-            background: var(--tg-theme-button-color, #2481cc);
-            color: var(--tg-theme-button-text-color, #ffffff);
-            border: none;
-            border-radius: 8px;
-            padding: 12px 24px;
-            font-size: 1rem;
-            margin: 20px 0;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        button:active {
-            opacity: 0.8;
-        }
-        .ad-container {
-            margin: 20px 0;
-            padding: 10px;
-            border: 1px dashed var(--tg-theme-hint-color, #ccc);
-            border-radius: 8px;
-            color: var(--tg-theme-hint-color, #999);
-            min-height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        body { background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); }
+        .ad-container { min-height: 100px; margin: 20px 0; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>My TMA</h1>
-        <p>Click the button below:</p>
+    <h1>My TMA</h1>
+    <button onclick="Telegram.WebApp.showAlert('Hello!')">Click me</button>
 
-        <!-- Simple interactive button -->
-        <button id="actionButton">Click Me</button>
+    <!-- Ad container (try both with and without id) -->
+    <div class="ad-container" id="telegram-ad"></div>
 
-        <!-- Ads will be placed here by the script -->
-        <div class="ad-container" id="adsContainer">
-            Loading ads...
-        </div>
-    </div>
-
-    <!-- Telegram Ads script -->
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
     <script>
-        // Initialize Telegram Ads
-        window.TelegramAdsController = new TelegramAdsController();
-        window.TelegramAdsController.initialize({
-            pubId: "null",   // Replace with your actual publisher ID
-            appId: "6347",
-        });
-
-        // Button click handler
-        document.getElementById('actionButton').addEventListener('click', function() {
-            // Show a simple alert (works in Telegram WebApp)
-            if (window.Telegram && Telegram.WebApp) {
-                Telegram.WebApp.showAlert('Button was clicked!');
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof TelegramAdsController !== 'undefined') {
+                window.TelegramAdsController = new TelegramAdsController();
+                window.TelegramAdsController.initialize({
+                    pubId: "YOUR_PUBLISHER_ID",  // <-- replace
+                    appId: "6347",
+                });
             } else {
-                alert('Button was clicked!');
+                console.error('TelegramAdsController not loaded');
             }
-        });
 
-        // Telegram WebApp ready
-        if (window.Telegram && Telegram.WebApp) {
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
-        }
+        });
     </script>
 </body>
 </html>
