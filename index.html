@@ -1,50 +1,131 @@
+
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-    <!-- Telegram Ads SDK (must load first) -->
+
+    <!-- Telegram Ads SDK (loaded early as requested) -->
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 
-    <!-- Initialization script – also in head, but waits for DOM -->
+    <!-- Initialization script with debugging -->
     <script>
-        // Wait for the DOM to be fully loaded before initializing
+        // Wait for the DOM to be ready before initializing
         document.addEventListener('DOMContentLoaded', function() {
-            if (typeof TelegramAdsController !== 'undefined') {
-                window.TelegramAdsController = new TelegramAdsController();
-                window.TelegramAdsController.initialize({
-                    pubId: "389237",  // Replace with your actual publisher ID
-                    appId: "6347",
-                });
-                console.log('✅ Ad controller initialized');
-            } else {
-                console.error('❌ TelegramAdsController not loaded');
-                // Optional: show a message in the ad container
-                const adDiv = document.getElementById('telegram-ad');
-                if (adDiv) adDiv.innerText = 'Ad script failed to load';
+            console.log('DOM fully loaded');
+
+            // Check if the ad controller is available
+            if (typeof TelegramAdsController === 'undefined') {
+                console.error('❌ TelegramAdsController is not defined – script may be blocked or failed to load');
+                document.getElementById('telegram-ad').innerText = 'Ad script failed to load';
+                return;
             }
 
-            // Telegram WebApp ready
+            try {
+                // Create and initialize the controller
+                window.TelegramAdsController = new TelegramAdsController();
+                console.log('✅ TelegramAdsController instance created');
+
+                // Log available methods (if any) for debugging
+                console.log('Methods on controller:', Object.getOwnPropertyNames(Object.getPrototypeOf(window.TelegramAdsController)));
+
+                // Initialize with your publisher ID and app ID
+                window.TelegramAdsController.initialize({
+                    pubId: "389237",   // ⚠️ REPLACE with your actual publisher ID
+                    appId: "6347",      // ⚠️ Check if this is correct for your campaign
+                });
+                console.log('✅ initialize() called with pubId=389237, appId=6347');
+
+                // Attempt to attach callbacks if supported by the SDK (speculative)
+                if (typeof window.TelegramAdsController.onAdLoaded === 'function') {
+                    window.TelegramAdsController.onAdLoaded = function() {
+                        console.log('✅ Ad loaded successfully');
+                        document.getElementById('telegram-ad').innerText = 'Ad loaded';
+                    };
+                }
+                if (typeof window.TelegramAdsController.onAdFailed === 'function') {
+                    window.TelegramAdsController.onAdFailed = function(error) {
+                        console.error('❌ Ad failed to load:', error);
+                        document.getElementById('telegram-ad').innerText = 'Ad failed: ' + (error || 'unknown error');
+                    };
+                }
+            } catch (e) {
+                console.error('❌ Error during ad initialization:', e);
+                document.getElementById('telegram-ad').innerText = 'Ad initialization error';
+            }
+
+            // Telegram WebApp setup
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
         });
     </script>
 
     <style>
-        body { background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-family: sans-serif; padding: 16px; }
-        button { background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; padding: 12px; border-radius: 8px; }
-        .ad-container { min-height: 100px; margin: 20px 0; border: 1px dashed gray; display: flex; align-items: center; justify-content: center; }
+        body {
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 16px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        button {
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        button:active {
+            opacity: 0.8;
+        }
+        .ad-container {
+            min-height: 120px;
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+            border: 2px dashed var(--tg-theme-hint-color, #aaa);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            box-sizing: border-box;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            color: var(--tg-theme-hint-color, #666);
+            font-size: 0.9rem;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <h1>My TMA</h1>
+
+    <!-- Simple button with Telegram native alert -->
     <button onclick="Telegram.WebApp.showAlert('Hello!')">Click me</button>
 
-    <!-- Ad container -->
+    <!-- Ad container – the SDK should place the ad here -->
     <div class="ad-container" id="telegram-ad">
-        Loading ad...
+        ⏳ Loading ad...
     </div>
+
+    <!-- Optional extra logging after body loads -->
+    <script>
+        // This runs after the DOM is already processed, just to double-check container exists
+        console.log('Body loaded, ad container element:', document.getElementById('telegram-ad'));
+    </script>
 </body>
 </html>
