@@ -5,16 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); }
-        .ad-container { min-height: 100px; margin: 20px 0; }
+        body { background: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); font-family: sans-serif; padding: 16px; }
+        button { background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); border: none; padding: 12px; border-radius: 8px; }
+        .ad-container { min-height: 100px; margin: 20px 0; border: 1px dashed gray; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
     <h1>My TMA</h1>
     <button onclick="Telegram.WebApp.showAlert('Hello!')">Click me</button>
 
-    <!-- Ad container (try both with and without id) -->
-    <div class="ad-container" id="telegram-ad"></div>
+    <div class="ad-container" id="telegram-ad">
+        Loading ad...
+    </div>
 
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
     <script>
@@ -22,11 +24,13 @@
             if (typeof TelegramAdsController !== 'undefined') {
                 window.TelegramAdsController = new TelegramAdsController();
                 window.TelegramAdsController.initialize({
-                    pubId: "YOUR_PUBLISHER_ID",  // <-- replace
+                    pubId: "389237",  // <-- replace with actual publisher ID if different
                     appId: "6347",
                 });
+                console.log('Ad controller initialized');
             } else {
-                console.error('TelegramAdsController not loaded');
+                console.error('TelegramAdsController script not loaded');
+                document.getElementById('telegram-ad').innerText = 'Ad script failed to load';
             }
 
             Telegram.WebApp.ready();
