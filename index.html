@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,17 +8,17 @@
     <!-- Telegram Ads SDK -->
     <script src="https://richinfo.co/richpartners/telegram/js/tg-ob.js"></script>
 
-    <!-- Initialization script with your new pubId -->
+    <!-- Initialization script with updated appId -->
     <script>
-        // Wait for the DOM to be fully loaded before initializing
+        // Wait for DOM to be fully loaded
         document.addEventListener('DOMContentLoaded', function() {
             if (typeof TelegramAdsController !== 'undefined') {
                 window.TelegramAdsController = new TelegramAdsController();
                 window.TelegramAdsController.initialize({
-                    pubId: "991787",   // Your updated publisher ID
-                    appId: "6347",
+                    pubId: "991787",   // Your publisher ID
+                    appId: "6466",     // Updated app ID
                 });
-                console.log('✅ TelegramAdsController initialized with pubId 991787');
+                console.log('✅ TelegramAdsController initialized with pubId 991787, appId 6466');
             } else {
                 console.error('❌ TelegramAdsController not loaded – script may be blocked');
                 const adDiv = document.getElementById('telegram-ad');
